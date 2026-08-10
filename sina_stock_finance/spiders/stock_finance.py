@@ -64,7 +64,7 @@ class StockFinanceSpider(Spider):
     }
 
     # 最大爬取页数（None = 不限）；可用环境变量 STOCK_MAX_PAGES 覆盖（冒烟/分布式限制）
-    MAX_PAGES = int(os.environ.get('STOCK_MAX_PAGES', '212'))
+    MAX_PAGES = 5 #int(os.environ.get('STOCK_MAX_PAGES', '212'))
 
     custom_settings = {
         'concurrency': 8,
