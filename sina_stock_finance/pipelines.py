@@ -1,0 +1,45 @@
+# -*- coding: UTF-8 -*-
+"""
+sina_stock_finance.pipelines — 数据管道
+"""
+
+from crawlo.logging import get_logger
+from crawlo.pipelines import BasePipeline
+
+
+class SinaStockFinancePipeline(BasePipeline):
+    """
+    sina_stock_finance 项目的数据管道
+
+    继承 BasePipeline 获得：
+    - from_crawler() 方法（框架要求）
+    - 标准的异步接口
+    - 类型提示支持
+    """
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        """创建 Pipeline 实例（框架要求）"""
+        return cls()
+
+    def __init__(self):
+        self.logger = get_logger(self.__class__.__name__)
+
+    async def process_item(self, item, spider):
+        """
+        处理数据项
+
+        Returns:
+            Item: 返回处理后的 item
+            None: 丢弃该 item
+        """
+        self.logger.info(f"处理数据项: {item}")
+        return item
+
+    async def open_spider(self, spider):
+        """爬虫启动时调用"""
+        self.logger.info(f"管道已启动，准备处理爬虫 '{spider.name}' 的数据")
+
+    async def close_spider(self, spider):
+        """爬虫关闭时调用"""
+        self.logger.info("管道已关闭")

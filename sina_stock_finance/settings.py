@@ -1,0 +1,243 @@
+# -*- coding: UTF-8 -*-
+"""
+sina_stock_finance 项目配置文件
+基于 Crawlo 框架的爬虫项目配置。
+
+使用 CrawloConfig.auto() 自动检测模式：
+  如果 Redis 可用 → 多节点协作模式；否则 → 单机模式。
+"""
+
+import os
+from datetime import datetime
+from crawlo.core.config import CrawloConfig
+
+
+# #############################################################################
+# 1. 基础配置
+# #############################################################################
+
+# concurrency   : 单个爬虫并发请求数（开发8，生产16-32）
+# download_delay: 请求间隔延迟（秒），根据目标网站反爬强度调整
+# max_running_spiders: 同时运行的最大爬虫数（默认3，分布式模式默认10，一般无需指定）
+config = CrawloConfig.distributed(
+    project_name='sina_stock_finance',
+    concurrency=8,
+    download_delay=1.0,
+)
+
+locals().update(config.to_dict())
+
+
+# #############################################################################
+# 2. 爬虫与管道配置
+# #############################################################################
+
+SPIDER_MODULES = ['sina_stock_finance.spiders']
+
+# 如需自定义管道（MySQL 存储 等），取消注释并添加：
+PIPELINES = {
+    'crawlo.pipelines.MySQLPipeline': 300,
+    # 'sina_stock_finance.pipelines.CustomPipeline': 600,
+}
+
+
+
+# 如需自定义中间件（优先级越小越先执行）：
+# MIDDLEWARES = {
+#     'sina_stock_finance.middlewares.CustomMiddleware': 500,
+# }
+
+# 如需自定义扩展：
+# EXTENSIONS = [
+#     'sina_stock_finance.extensions.CustomExtension',
+# ]
+
+
+# #############################################################################
+# 3. 日志配置
+# #############################################################################
+
+LOG_LEVEL = 'INFO'
+# 分布式启动（run_distributed.py）设置 LOG_FILE_ENABLED=false 时禁用文件日志，
+# 避免与 worker_XX.log 重复；单机 run.py 保持默认写文件日志。
+LOG_FILE_ENABLED = os.environ.get('LOG_FILE_ENABLED', 'true').lower() == 'true'
+LOG_FILE = f'logs/sina_stock_finance_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
+LOG_ENCODING = 'utf-8'
+
+
+# #############################################################################
+# 4. 数据库配置
+# #############################################################################
+
+# ---------------------------------------------------------------------------#
+# Redis（多节点协作 / 分布式模式必需）
+# ---------------------------------------------------------------------------#
+
+REDIS_HOST = '127.0.0.1'                                # Redis 主机地址
+REDIS_PORT = 6379                                       # Redis 端口
+REDIS_PASSWORD = ''                                     # Redis 密码
+REDIS_USER = ''                                         # Redis 用户名（Redis 6.0+ ACL）
+REDIS_DB = 0                                            # Redis 数据库编号
+
+# 分布式空闲退出阈值：本站每页约 60-80s（40 详情 × 1s 延迟），
+# 默认 120s 在翻页间隙易误判空闲导致提前退出。长任务建议 600s 或 0（永不退出）。
+DISTRIBUTED_WORKER_IDLE_TIMEOUT = 600
+
+# Redis Sentinel 高可用
+# 优先级：REDIS_SENTINEL_URLS 非空 → 走 Sentinel 模式，忽略 REDIS_HOST/REDIS_PORT
+#          REDIS_SENTINEL_URLS 为空 → 走直连模式，使用 REDIS_HOST/REDIS_PORT
+# REDIS_SENTINEL_URLS = ['redis://10.0.0.1:26379', 'redis://10.0.0.2:26379']
+# REDIS_SENTINEL_SERVICE = 'mymaster'                    # Sentinel 监控的 Master 名称
+
+# ---------------------------------------------------------------------------#
+# MySQL（如需入库）
+# ---------------------------------------------------------------------------#
+
+MYSQL_HOST = '127.0.0.1'
+MYSQL_PORT = 3306
+MYSQL_USER = 'crawlo'
+MYSQL_PASSWORD = 'crawlo123'
+MYSQL_DB = 'crawlo_deployer'
+MYSQL_TABLE = 'sina_stock_finance'
+
+# 冲突处理策略（三者互斥，按优先级生效，修改时取消注释）：
+# MYSQL_UPDATE_COLUMNS  >  MYSQL_AUTO_UPDATE  >  MYSQL_INSERT_IGNORE
+# MYSQL_UPDATE_COLUMNS = ()                               # ON DUPLICATE KEY UPDATE：指定要更新的字段（空元组=更新全部）
+# MYSQL_AUTO_UPDATE = False                               # REPLACE INTO：覆盖整行（会导致自增 ID 变化）
+# MYSQL_INSERT_IGNORE = True                              # INSERT IGNORE：忽略重复数据，保留旧记录（默认行为）
+
+
+# ---------------------------------------------------------------------------#
+# MongoDB（如需入库）
+# ---------------------------------------------------------------------------#
+
+# MONGO_URI = 'mongodb://localhost:27017'
+# MONGO_DATABASE = 'sina_stock_finance_db'
+# MONGO_COLLECTION = 'sina_stock_finance_items'
+
+
+# #############################################################################
+# 5. 浏览器下载器配置（含 Playwright / Camoufox / CloakBrowser / DrissionPage）
+# #############################################################################
+
+# 通用配置（所有浏览器下载器共用，各下载器可通过自身前缀覆盖）
+# BROWSER_HEADLESS = True              # 无头模式
+# BROWSER_TIMEOUT = 30000              # 超时时间（毫秒）
+# BROWSER_LOAD_TIMEOUT = 10000         # 页面加载超时（毫秒）
+# BROWSER_VIEWPORT_WIDTH = 1280        # 视口宽度
+# BROWSER_VIEWPORT_HEIGHT = 720        # 视口高度
+# BROWSER_MAX_PAGES = 10               # 单浏览器最大页面数
+# BROWSER_PROXY = None                 # 代理设置
+# BROWSER_BLOCK_RESOURCES = ["image", "font", "media"]
+# BROWSER_AUTO_SCROLL = False          # 自动滚动
+# BROWSER_SCROLL_DELAY = 500           # 滚动延迟（毫秒）
+# BROWSER_WAIT_STRATEGY = "auto"       # 等待策略：auto | networkidle | domcontentloaded | element
+# BROWSER_WAIT_TIMEOUT = 10000         # 智能等待超时（毫秒）
+# BROWSER_WAIT_FOR_ELEMENT = None      # 等待特定元素选择器
+# BROWSER_STEALTH_LEVEL = 'basic'      # 反检测级别：none | basic | advanced
+
+# Playwright 特有参数
+# PLAYWRIGHT_BROWSER_TYPE = "chromium"     # chromium | firefox | webkit
+# PLAYWRIGHT_SINGLE_BROWSER_MODE = True    # 单浏览器多标签页模式
+
+# Camoufox 特有参数（基于 Firefox，内置 Cloudflare 绕过）
+# CAMOUFOX_SOLVE_CLOUDFLARE = True
+
+# CloakBrowser 特有参数（基于 Chromium，C++ 层反检测）
+# CLOAKBROWSER_GEOIP = False
+# CLOAKBROWSER_FINGERPRINT = None          # 指纹种子（相同种子=相同指纹）
+
+# 混合下载器（HybridDownloader）
+# HYBRID_DEFAULT_PROTOCOL_DOWNLOADER = "httpx"
+# HYBRID_DEFAULT_DYNAMIC_DOWNLOADER = "cloakbrowser"
+
+
+# #############################################################################
+# 6. 反反爬虫配置
+# #############################################################################
+
+# ---------------------------------------------------------------------------#
+# 动态渲染中间件（自动检测页面是否需要浏览器渲染）
+# ---------------------------------------------------------------------------#
+
+# 与 HybridDownloader 分层协作：中间件检测页面类型，下载器读取标记选择下载方式
+# DYNAMIC_RENDER_ENABLED = True
+# DYNAMIC_RENDER_DOMAIN_PATTERNS = ['spa.example.com']
+# DYNAMIC_RENDER_URL_PATTERNS = [r'/app/', r'/#/', r'/spa/']
+
+# ---------------------------------------------------------------------------#
+# Cloudflare 绕过
+# ---------------------------------------------------------------------------#
+
+# CLOUDFLARE_BYPASS_MAX_RETRIES = 2
+# CLOUDFLARE_BYPASS_DOWNLOADER = 'cloakbrowser'   # 或 camoufox / playwright
+
+
+# #############################################################################
+# 7. 代理配置
+# #############################################################################
+
+# 静态代理
+# PROXY_LIST = ["http://proxy1:8080", "http://proxy2:8080"]
+
+# 动态代理 API
+# PROXY_API_URL = "http://your-proxy-api.com/get-proxy"
+# PROXY_EXTRACTOR = "proxy"
+
+
+# #############################################################################
+# 8. 定时任务配置
+# #############################################################################
+
+SCHEDULER_ENABLED = False
+
+SCHEDULER_JOBS = [
+    {
+        'spider': 'spider_name_1',
+        'cron': '*/5 * * * *',          # 每 5 分钟执行一次
+        'enabled': True,
+        'priority': 10,
+        'timeout': 3600,                # 单次超时（秒），按爬虫预期时长设置
+        'max_retries': 3,
+        'retry_delay': 60,
+        'args': {},
+        'kwargs': {},
+    },
+    {
+        'spider': 'spider_name_2',
+        'cron': '0 2 * * *',            # 每天凌晨 2 点
+        'enabled': True,
+        'priority': 20,
+        'timeout': 7200,                # 单次超时（秒），不同爬虫可设不同值
+        'max_retries': 2,
+        'retry_delay': 120,
+        'args': {'daily': True},
+        'kwargs': {},
+    },
+]
+
+
+# #############################################################################
+# 9. 通知系统配置（钉钉 / 飞书 / 企业微信）
+# #############################################################################
+
+NOTIFICATION_ENABLED = False
+NOTIFICATION_CHANNELS = []              # 如 ['dingtalk', 'feishu', 'wecom']
+
+# 钉钉
+# DINGTALK_WEBHOOK = "https://oapi.dingtalk.com/robot/send?access_token=YOUR_TOKEN"
+# DINGTALK_SECRET = "YOUR_SECRET"
+
+# 飞书
+# FEISHU_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/YOUR_HOOK_ID"
+# FEISHU_SECRET = "YOUR_SECRET"
+
+# 企业微信
+# WECOM_WEBHOOK = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_KEY"
+
+
+# #############################################################################
+# 10. 其他输出配置
+# #############################################################################
+
+OUTPUT_DIR = 'output'

@@ -1,0 +1,5 @@
+# Crawlo 框架（1.7.4 发布后可用最新版）
+crawlo>=1.7.3
+
+# MySQL 入库（crawlo.pipelines.MySQLPipeline 依赖）
+asyncmy>=0.2.9
