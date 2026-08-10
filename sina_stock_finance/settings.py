@@ -19,7 +19,7 @@ from crawlo.core.config import CrawloConfig
 # concurrency   : 单个爬虫并发请求数（开发8，生产16-32）
 # download_delay: 请求间隔延迟（秒），根据目标网站反爬强度调整
 # max_running_spiders: 同时运行的最大爬虫数（默认3，分布式模式默认10，一般无需指定）
-config = CrawloConfig.distributed(
+config = CrawloConfig.standalone(
     project_name='sina_stock_finance',
     concurrency=8,
     download_delay=1.0,
