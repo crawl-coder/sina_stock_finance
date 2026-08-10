@@ -35,11 +35,10 @@ locals().update(config.to_dict())
 SPIDER_MODULES = ['sina_stock_finance.spiders']
 
 # 如需自定义管道（MySQL 存储 等），取消注释并添加：
-PIPELINES = {
-    'crawlo.pipelines.ConsolePipeline': 300,  # 测试环境改用 ConsolePipeline
-    # 'crawlo.pipelines.MySQLPipeline': 300,
-    # 'sina_stock_finance.pipelines.CustomPipeline': 600,
-}
+# PIPELINES = {
+#     'crawlo.pipelines.MySQLPipeline': 300,
+#     # 'sina_stock_finance.pipelines.CustomPipeline': 600,
+# }
 
 
 
